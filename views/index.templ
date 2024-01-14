@@ -16,14 +16,17 @@ templ Layout() {
 	</html>
 }
 
-templ Home(items []db.Item) {
+templ Home(items []db.GetItemsRow) {
 	@Layout() {
 		<main class="container mx-auto sm:mx-8 mt-8">
 			<h1 class="text-3xl">OSR</h1>
 			<ul class="mt-4">
 				for _, item := range items {
-					<li class="mt-2">
-						<a class="hover:text-cyan-600" href={ templ.SafeURL(item.Link) }>{ item.Title }</a>
+					<li class="mt-4">
+						<a class="hover:text-cyan-600" href={ templ.SafeURL(item.Link) }>
+							<h2>{ item.Title }</h2>
+							<small>{item.PublishedAt.Format("2006-02-01")} [{*item.FeedTitle}]</small>
+						</a>
 					</li>
 				}
 			</ul>

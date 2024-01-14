@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createFeed = `-- name: CreateFeed :one
@@ -36,27 +37,40 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const createItem = `-- name: CreateItem :one
-INSERT INTO items (feed_id, title, link, updated_at)
-VALUES ($1, $2, $3, NOW())
+INSERT INTO items (feed_id, title, link, categories, content, published_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW())
 ON CONFLICT (link)
 DO UPDATE SET updated_at=NOW()
-RETURNING item_id, feed_id, title, link, created_at, updated_at
+RETURNING item_id, feed_id, title, link, categories, content, published_at, created_at, updated_at
 `
 
 type CreateItemParams struct {
-	FeedID *int32 `json:"feed_id"`
-	Title  string `json:"title"`
-	Link   string `json:"link"`
+	FeedID      *int32    `json:"feed_id"`
+	Title       string    `json:"title"`
+	Link        string    `json:"link"`
+	Categories  []string  `json:"categories"`
+	Content     string    `json:"content"`
+	PublishedAt time.Time `json:"published_at"`
 }
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
-	row := q.db.QueryRow(ctx, createItem, arg.FeedID, arg.Title, arg.Link)
+	row := q.db.QueryRow(ctx, createItem,
+		arg.FeedID,
+		arg.Title,
+		arg.Link,
+		arg.Categories,
+		arg.Content,
+		arg.PublishedAt,
+	)
 	var i Item
 	err := row.Scan(
 		&i.ItemID,
 		&i.FeedID,
 		&i.Title,
 		&i.Link,
+		&i.Categories,
+		&i.Content,
+		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -64,25 +78,36 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 }
 
 const getItems = `-- name: GetItems :many
-SELECT item_id, feed_id, title, link, created_at, updated_at FROM items LIMIT 20
+SELECT i.item_id, i.title, i.link, i.published_at, f.title AS feed_title
+FROM items i
+LEFT JOIN feeds f ON f.feed_id=i.feed_id
+ORDER BY i.published_at DESC
+LIMIT 20
 `
 
-func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
+type GetItemsRow struct {
+	ItemID      int32     `json:"item_id"`
+	Title       string    `json:"title"`
+	Link        string    `json:"link"`
+	PublishedAt time.Time `json:"published_at"`
+	FeedTitle   *string   `json:"feed_title"`
+}
+
+func (q *Queries) GetItems(ctx context.Context) ([]GetItemsRow, error) {
 	rows, err := q.db.Query(ctx, getItems)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Item{}
+	items := []GetItemsRow{}
 	for rows.Next() {
-		var i Item
+		var i GetItemsRow
 		if err := rows.Scan(
 			&i.ItemID,
-			&i.FeedID,
 			&i.Title,
 			&i.Link,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.PublishedAt,
+			&i.FeedTitle,
 		); err != nil {
 			return nil, err
 		}

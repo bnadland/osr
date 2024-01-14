@@ -5,6 +5,8 @@
 package db
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -17,12 +19,15 @@ type Feed struct {
 }
 
 type Item struct {
-	ItemID    int32              `json:"item_id"`
-	FeedID    *int32             `json:"feed_id"`
-	Title     string             `json:"title"`
-	Link      string             `json:"link"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ItemID      int32              `json:"item_id"`
+	FeedID      *int32             `json:"feed_id"`
+	Title       string             `json:"title"`
+	Link        string             `json:"link"`
+	Categories  []string           `json:"categories"`
+	Content     string             `json:"content"`
+	PublishedAt time.Time          `json:"published_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type SchemaMigration struct {

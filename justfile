@@ -9,7 +9,9 @@ down:
 
 deps:
     asdf plugin add golang
+    asdf plugin add nodejs
     asdf install
+    npm install
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
     go install github.com/cosmtrek/air@latest
     go install github.com/a-h/templ/cmd/templ@latest
@@ -21,6 +23,9 @@ pre: css templ
 
 css:
     npx tailwind -i ./app.css -o ./assets/app.css
+
+fonts:
+    cp ./node_modules/@fontsource/inter/files/inter-latin-400-normal.woff* ./assets/
 
 templ:
     templ generate .

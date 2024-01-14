@@ -49,6 +49,9 @@ CREATE TABLE public.items (
     feed_id integer,
     title text NOT NULL,
     link text NOT NULL,
+    categories text[],
+    content text DEFAULT ''::text NOT NULL,
+    published_at timestamp with time zone DEFAULT now() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );

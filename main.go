@@ -14,7 +14,7 @@ import (
 	_ "github.com/amacneil/dbmate/v2/pkg/driver/postgres"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 //go:embed assets
@@ -41,15 +41,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close()
 
 	q := db.New(conn)
-	Feeds(q)
+	go Feeds(q)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
