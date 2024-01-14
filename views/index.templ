@@ -1,0 +1,32 @@
+package views
+
+import "osr/db"
+
+templ Layout() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/assets/app.css"/>
+		</head>
+		<body>
+			{ children... }
+		</body>
+	</html>
+}
+
+templ Home(items []db.Item) {
+	@Layout() {
+		<main class="container mx-auto sm:mx-8 mt-8">
+			<h1 class="text-3xl">OSR</h1>
+			<ul class="mt-4">
+				for _, item := range items {
+					<li class="mt-2">
+						<a class="hover:text-cyan-600" href={ templ.SafeURL(item.Link) }>{ item.Title }</a>
+					</li>
+				}
+			</ul>
+		</main>
+	}
+}
